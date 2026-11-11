@@ -32,11 +32,10 @@
 lib/generated_plugin_registrant.dart
 
 # Android related
-**/android/**/gradle-wrapper.jar
+
 **/android/.gradle
 **/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
+
 **/android/local.properties
 **/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 
@@ -75,3 +74,6 @@ lib/generated_plugin_registrant.dart
 
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+# Local Android backup
+/android_backup_20261111/
