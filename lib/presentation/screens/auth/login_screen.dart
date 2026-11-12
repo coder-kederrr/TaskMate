@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _fillDemoCredentials() {
-    _emailController.text = 'faiz.fatodi@student.ac.id';
+    _emailController.text = 'demo.user@student.ac.id';
     _passwordController.text = 'student123';
   }
 
@@ -55,7 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
             child: Form(
               key: _formKey,
               child: Column(
@@ -94,7 +95,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(
                       'TaskMate',
                       style: AppTextStyles.h1.copyWith(
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.lightTextPrimary,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -104,7 +107,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(
                       'Student Task & Study Planner',
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
                       ),
                     ),
                   ),
@@ -114,14 +119,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'Masuk ke Akun',
                     style: AppTextStyles.h2.copyWith(
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.lightTextPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Kelola jadwal kuliah dan tugas dengan lebih produktif.',
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -259,4 +268,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

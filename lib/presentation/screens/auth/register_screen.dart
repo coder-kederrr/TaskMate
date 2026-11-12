@@ -51,7 +51,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Pendaftaran berhasil! Selamat datang di TaskMate 🎉'),
+            content:
+                Text('Pendaftaran berhasil! Selamat datang di TaskMate 🎉'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -84,14 +85,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   'Mulai Perjalanan Akademikmu',
                   style: AppTextStyles.h2.copyWith(
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.lightTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Atur semua deadline tugas kuliah dan jadwal belajarmu dalam satu aplikasi.',
                   style: AppTextStyles.bodyMedium.copyWith(
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -100,7 +105,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 CustomTextField(
                   controller: _nameController,
                   label: 'Nama Lengkap Mahasiswa',
-                  hint: 'Contoh: Faiz Fatodi',
+                  hint: 'Contoh: Joko Widodo',
                   prefixIcon: Icons.person_outline_rounded,
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
@@ -264,4 +269,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-

@@ -6,11 +6,11 @@ import '../models/user_model.dart';
 class DummyData {
   static const UserModel currentUser = UserModel(
     id: 'user_1',
-    name: 'Faiz Fatodi',
-    email: 'faiz.fatodi@student.ac.id',
-    university: 'Universitas Indonesia',
+    name: 'Dwi Bima Merdiyansyah',
+    email: 'merdiyansyahdwibima@gmail.com',
+    university: 'Universitas Yudharta Pasuruan',
     major: 'Teknik Informatika',
-    semester: 5,
+    semester: 7,
   );
 
   static final List<CategoryModel> categories = [
@@ -137,4 +137,3 @@ class DummyData {
     ];
   }
 }
-
