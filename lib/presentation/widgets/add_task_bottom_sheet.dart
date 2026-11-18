@@ -10,7 +10,12 @@ import 'custom_button.dart';
 import 'custom_text_field.dart';
 
 class AddTaskBottomSheet extends StatefulWidget {
-  const AddTaskBottomSheet({super.key});
+  final TaskModel? task;
+
+  const AddTaskBottomSheet({
+    super.key,
+    this.task,
+  });
 
   @override
   State<AddTaskBottomSheet> createState() => _AddTaskBottomSheetState();
@@ -18,22 +23,55 @@ class AddTaskBottomSheet extends StatefulWidget {
 
 class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _descController;
 
   String? _selectedCategoryId;
   String _selectedCategoryName = '';
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 23, minute: 59);
-  TaskPriority _selectedPriority = TaskPriority.medium;
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
+  late TaskPriority _selectedPriority;
+
+  bool get _isEditMode => widget.task != null;
 
   @override
   void initState() {
     super.initState();
     final categories = context.read<TaskProvider>().categories;
-    if (categories.isNotEmpty) {
-      _selectedCategoryId = categories.first.id;
-      _selectedCategoryName = categories.first.name;
+
+    if (_isEditMode) {
+      final task = widget.task!;
+      _titleController = TextEditingController(text: task.title);
+      _descController = TextEditingController(text: task.description);
+      _selectedDate = task.deadline;
+      _selectedTime = TimeOfDay(
+        hour: task.deadline.hour,
+        minute: task.deadline.minute,
+      );
+      _selectedPriority = task.priority;
+
+      final matchingCategory = categories.where((c) => c.id == task.categoryId);
+      if (matchingCategory.isNotEmpty) {
+        _selectedCategoryId = task.categoryId;
+        _selectedCategoryName = matchingCategory.first.name;
+      } else if (categories.isNotEmpty) {
+        _selectedCategoryId = categories.first.id;
+        _selectedCategoryName = categories.first.name;
+      } else {
+        _selectedCategoryId = task.categoryId;
+        _selectedCategoryName = task.categoryName;
+      }
+    } else {
+      _titleController = TextEditingController();
+      _descController = TextEditingController();
+      _selectedDate = DateTime.now().add(const Duration(days: 1));
+      _selectedTime = const TimeOfDay(hour: 23, minute: 59);
+      _selectedPriority = TaskPriority.medium;
+
+      if (categories.isNotEmpty) {
+        _selectedCategoryId = categories.first.id;
+        _selectedCategoryName = categories.first.name;
+      }
     }
   }
 
@@ -45,11 +83,21 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
   }
 
   Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final defaultFirstDate = now.subtract(const Duration(days: 1));
+    final firstDate = _selectedDate.isBefore(defaultFirstDate)
+        ? _selectedDate.subtract(const Duration(days: 365))
+        : defaultFirstDate;
+    final defaultLastDate = now.add(const Duration(days: 365));
+    final lastDate = _selectedDate.isAfter(defaultLastDate)
+        ? _selectedDate.add(const Duration(days: 365))
+        : defaultLastDate;
+
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -76,27 +124,56 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
         _selectedTime.minute,
       );
 
-      final newTask = TaskModel(
-        id: 'task_${DateTime.now().millisecondsSinceEpoch}',
-        title: _titleController.text.trim(),
-        description: _descController.text.trim(),
-        categoryId: _selectedCategoryId ?? 'cat_general',
-        categoryName: _selectedCategoryName,
-        deadline: deadline,
-        priority: _selectedPriority,
-        isCompleted: false,
-        createdAt: DateTime.now(),
-      );
+      final taskProvider = context.read<TaskProvider>();
 
-      context.read<TaskProvider>().addTask(newTask);
-      Navigator.pop(context);
+      if (_isEditMode) {
+        final currentTask = widget.task!;
+        final updatedTask = currentTask.copyWith(
+          id: currentTask.id,
+          createdAt: currentTask.createdAt,
+          isCompleted: currentTask.isCompleted,
+          title: _titleController.text.trim(),
+          description: _descController.text.trim(),
+          categoryId: _selectedCategoryId ?? currentTask.categoryId,
+          categoryName: _selectedCategoryName.isNotEmpty
+              ? _selectedCategoryName
+              : currentTask.categoryName,
+          deadline: deadline,
+          priority: _selectedPriority,
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tugas berhasil ditambahkan! ✨'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        taskProvider.updateTask(updatedTask);
+        Navigator.pop(context);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tugas berhasil diperbarui! ✨'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        final newTask = TaskModel(
+          id: 'task_${DateTime.now().millisecondsSinceEpoch}',
+          title: _titleController.text.trim(),
+          description: _descController.text.trim(),
+          categoryId: _selectedCategoryId ?? 'cat_general',
+          categoryName: _selectedCategoryName,
+          deadline: deadline,
+          priority: _selectedPriority,
+          isCompleted: false,
+          createdAt: DateTime.now(),
+        );
+
+        taskProvider.addTask(newTask);
+        Navigator.pop(context);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tugas berhasil ditambahkan! ✨'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -129,7 +206,8 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      color:
+                          isDark ? AppColors.darkBorder : AppColors.lightBorder,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -139,9 +217,11 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Tambah Tugas Baru',
+                      _isEditMode ? 'Edit Tugas' : 'Tambah Tugas Baru',
                       style: AppTextStyles.h3.copyWith(
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.lightTextPrimary,
                       ),
                     ),
                     IconButton(
@@ -174,7 +254,9 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                   'Mata Kuliah',
                   style: AppTextStyles.labelMedium.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.lightTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -184,14 +266,21 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                     color: isDark ? AppColors.darkCardElevated : Colors.white,
                     borderRadius: AppConstants.borderRadiusM,
                     border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      color:
+                          isDark ? AppColors.darkBorder : AppColors.lightBorder,
                     ),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: _selectedCategoryId,
+                      value:
+                          categories.any((cat) => cat.id == _selectedCategoryId)
+                              ? _selectedCategoryId
+                              : (categories.isNotEmpty
+                                  ? categories.first.id
+                                  : null),
                       isExpanded: true,
-                      dropdownColor: isDark ? AppColors.darkCardElevated : Colors.white,
+                      dropdownColor:
+                          isDark ? AppColors.darkCardElevated : Colors.white,
                       items: categories.map((cat) {
                         return DropdownMenuItem<String>(
                           value: cat.id,
@@ -206,7 +295,8 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              Text(cat.name, style: const TextStyle(fontSize: 14)),
+                              Text(cat.name,
+                                  style: const TextStyle(fontSize: 14)),
                             ],
                           ),
                         );
@@ -264,7 +354,8 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                                       size: 16, color: AppColors.primary),
                                   const SizedBox(width: 8),
                                   Text(
-                                    DateFormatter.formatMediumDate(_selectedDate),
+                                    DateFormatter.formatMediumDate(
+                                        _selectedDate),
                                     style: const TextStyle(fontSize: 13),
                                   ),
                                 ],
@@ -330,7 +421,9 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                   'Prioritas Tugas',
                   style: AppTextStyles.labelMedium.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.lightTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -369,7 +462,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
 
                 // Submit Button
                 CustomButton(
-                  text: 'Simpan Tugas',
+                  text: _isEditMode ? 'Simpan Perubahan' : 'Simpan Tugas',
                   icon: Icons.check_rounded,
                   onPressed: _saveTask,
                 ),
@@ -418,4 +511,3 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
     );
   }
 }
-

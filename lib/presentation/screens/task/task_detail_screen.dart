@@ -8,6 +8,7 @@ import '../../../data/models/task_model.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/priority_badge.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/add_task_bottom_sheet.dart';
 
 class TaskDetailScreen extends StatelessWidget {
   final TaskModel task;
@@ -34,14 +35,28 @@ class TaskDetailScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Edit Tugas',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => AddTaskBottomSheet(task: currentTask),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded,
+                color: AppColors.error),
             tooltip: 'Hapus Tugas',
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('Hapus Tugas?'),
-                  content: Text('Apakah kamu yakin ingin menghapus "${currentTask.title}"?'),
+                  content: Text(
+                      'Apakah kamu yakin ingin menghapus "${currentTask.title}"?'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
@@ -124,7 +139,9 @@ class TaskDetailScreen extends StatelessWidget {
             Text(
               currentTask.title,
               style: AppTextStyles.h2.copyWith(
-                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                color: isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary,
               ),
             ),
             const SizedBox(height: 20),
@@ -158,10 +175,12 @@ class TaskDetailScreen extends StatelessWidget {
                       children: [
                         Text(
                           DateFormatter.formatDateTime(currentTask.deadline),
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 13),
                         ),
                         Text(
-                          DateFormatter.getRelativeTimeSpan(currentTask.deadline),
+                          DateFormatter.getRelativeTimeSpan(
+                              currentTask.deadline),
                           style: TextStyle(
                             fontSize: 11,
                             color: DateFormatter.isDueSoon(currentTask.deadline)
@@ -185,7 +204,8 @@ class TaskDetailScreen extends StatelessWidget {
                     context,
                     icon: Icons.history_rounded,
                     label: 'Dibuat Pada',
-                    value: DateFormatter.formatMediumDate(currentTask.createdAt),
+                    value:
+                        DateFormatter.formatMediumDate(currentTask.createdAt),
                   ),
                 ],
               ),
@@ -196,7 +216,9 @@ class TaskDetailScreen extends StatelessWidget {
             Text(
               'Instruksi & Catatan Tambahan',
               style: AppTextStyles.h4.copyWith(
-                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                color: isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary,
               ),
             ),
             const SizedBox(height: 10),
@@ -215,7 +237,9 @@ class TaskDetailScreen extends StatelessWidget {
                     ? currentTask.description
                     : 'Tidak ada catatan atau instruksi tambahan untuk tugas ini.',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
                   height: 1.6,
                 ),
               ),
@@ -270,7 +294,9 @@ class TaskDetailScreen extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 13,
-            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.lightTextSecondary,
           ),
         ),
         const Spacer(),
@@ -282,11 +308,12 @@ class TaskDetailScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+              color: isDark
+                  ? AppColors.darkTextPrimary
+                  : AppColors.lightTextPrimary,
             ),
           ),
       ],
     );
   }
 }
-
