@@ -175,12 +175,14 @@ class TaskDetailScreen extends StatelessWidget {
                       children: [
                         Text(
                           DateFormatter.formatDateTime(currentTask.deadline),
+                          textAlign: TextAlign.right,
                           style: const TextStyle(
                               fontWeight: FontWeight.w600, fontSize: 13),
                         ),
                         Text(
                           DateFormatter.getRelativeTimeSpan(
                               currentTask.deadline),
+                          textAlign: TextAlign.right,
                           style: TextStyle(
                             fontSize: 11,
                             color: DateFormatter.isDueSoon(currentTask.deadline)
@@ -287,32 +289,44 @@ class TaskDetailScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: isDark
-                ? AppColors.darkTextSecondary
-                : AppColors.lightTextSecondary,
-          ),
+        Padding(
+          padding: const EdgeInsets.only(top: 2.0),
+          child: Icon(icon, size: 18, color: AppColors.primary),
         ),
-        const Spacer(),
-        if (valueWidget != null)
-          valueWidget
-        else if (value != null)
-          Text(
-            value,
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w600,
               color: isDark
-                  ? AppColors.darkTextPrimary
-                  : AppColors.lightTextPrimary,
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
             ),
           ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 3,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: valueWidget ??
+                Text(
+                  value ?? '',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.lightTextPrimary,
+                  ),
+                ),
+          ),
+        ),
       ],
     );
   }

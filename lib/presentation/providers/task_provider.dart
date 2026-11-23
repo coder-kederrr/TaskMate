@@ -8,6 +8,8 @@ import '../../core/utils/date_formatter.dart';
 
 enum TaskStatusFilter { all, pending, completed }
 
+enum PriorityFilter { all, high, medium, low }
+
 class TaskProvider extends ChangeNotifier {
   static const String _storageKey = 'taskmate_saved_tasks';
 
@@ -16,7 +18,7 @@ class TaskProvider extends ChangeNotifier {
 
   String _searchQuery = '';
   String? _selectedCategoryId;
-  TaskPriority? _selectedPriority;
+  PriorityFilter _selectedPriority = PriorityFilter.all;
   TaskStatusFilter _statusFilter = TaskStatusFilter.all;
 
   bool _isInitializing = true;
@@ -121,17 +123,19 @@ class TaskProvider extends ChangeNotifier {
   List<CategoryModel> get categories => List.unmodifiable(_categories);
   String get searchQuery => _searchQuery;
   String? get selectedCategoryId => _selectedCategoryId;
-  TaskPriority? get selectedPriority => _selectedPriority;
+  PriorityFilter get selectedPriority => _selectedPriority;
   TaskStatusFilter get statusFilter => _statusFilter;
 
   List<TaskModel> get filteredTasks {
     return _tasks.where((task) {
-      // Search filter
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        final matchesTitle = task.title.toLowerCase().contains(query);
-        final matchesDesc = task.description.toLowerCase().contains(query);
-        final matchesCat = task.categoryName.toLowerCase().contains(query);
+      // Search filter (judul, deskripsi, mata kuliah / kategori)
+      final trimmedQuery = _searchQuery.trim().toLowerCase();
+      if (trimmedQuery.isNotEmpty) {
+        final matchesTitle = task.title.toLowerCase().contains(trimmedQuery);
+        final matchesDesc =
+            task.description.toLowerCase().contains(trimmedQuery);
+        final matchesCat =
+            task.categoryName.toLowerCase().contains(trimmedQuery);
         if (!matchesTitle && !matchesDesc && !matchesCat) return false;
       }
 
@@ -141,16 +145,30 @@ class TaskProvider extends ChangeNotifier {
       }
 
       // Priority filter
-      if (_selectedPriority != null) {
-        if (task.priority != _selectedPriority) return false;
+      switch (_selectedPriority) {
+        case PriorityFilter.high:
+          if (task.priority != TaskPriority.high) return false;
+          break;
+        case PriorityFilter.medium:
+          if (task.priority != TaskPriority.medium) return false;
+          break;
+        case PriorityFilter.low:
+          if (task.priority != TaskPriority.low) return false;
+          break;
+        case PriorityFilter.all:
+          break;
       }
 
       // Status filter
-      if (_statusFilter == TaskStatusFilter.pending && task.isCompleted) {
-        return false;
-      }
-      if (_statusFilter == TaskStatusFilter.completed && !task.isCompleted) {
-        return false;
+      switch (_statusFilter) {
+        case TaskStatusFilter.pending:
+          if (task.isCompleted) return false;
+          break;
+        case TaskStatusFilter.completed:
+          if (!task.isCompleted) return false;
+          break;
+        case TaskStatusFilter.all:
+          break;
       }
 
       return true;
@@ -221,7 +239,7 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setPriorityFilter(TaskPriority? priority) {
+  void setPriorityFilter(PriorityFilter priority) {
     _selectedPriority = priority;
     notifyListeners();
   }
@@ -234,7 +252,7 @@ class TaskProvider extends ChangeNotifier {
   void resetFilters() {
     _searchQuery = '';
     _selectedCategoryId = null;
-    _selectedPriority = null;
+    _selectedPriority = PriorityFilter.all;
     _statusFilter = TaskStatusFilter.all;
     notifyListeners();
   }

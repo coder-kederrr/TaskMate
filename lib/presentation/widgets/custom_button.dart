@@ -80,15 +80,27 @@ class CustomButton extends StatelessWidget {
     if (icon != null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 8),
-          Text(text, style: AppTextStyles.button.copyWith(color: color)),
+          Flexible(
+            child: Text(
+              text,
+              style: AppTextStyles.button.copyWith(color: color),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       );
     }
 
-    return Text(text, style: AppTextStyles.button.copyWith(color: color));
+    return Text(
+      text,
+      style: AppTextStyles.button.copyWith(color: color),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
-

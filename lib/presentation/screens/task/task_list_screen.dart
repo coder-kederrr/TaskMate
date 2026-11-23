@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../data/models/task_model.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/task_card.dart';
 import '../../widgets/empty_state_view.dart';
@@ -18,9 +17,46 @@ class TaskListScreen extends StatefulWidget {
 
 class _TaskListScreenState extends State<TaskListScreen> {
   final _searchController = TextEditingController();
+  TaskProvider? _taskProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.text = context.read<TaskProvider>().searchQuery;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = Provider.of<TaskProvider>(context, listen: false);
+    if (_taskProvider != provider) {
+      _taskProvider?.removeListener(_onTaskProviderChanged);
+      _taskProvider = provider;
+      _taskProvider?.addListener(_onTaskProviderChanged);
+      if (_searchController.text != provider.searchQuery) {
+        _searchController.value = _searchController.value.copyWith(
+          text: provider.searchQuery,
+          selection:
+              TextSelection.collapsed(offset: provider.searchQuery.length),
+        );
+      }
+    }
+  }
+
+  void _onTaskProviderChanged() {
+    if (!mounted || _taskProvider == null) return;
+    final currentQuery = _taskProvider!.searchQuery;
+    if (_searchController.text != currentQuery) {
+      _searchController.value = _searchController.value.copyWith(
+        text: currentQuery,
+        selection: TextSelection.collapsed(offset: currentQuery.length),
+      );
+    }
+  }
 
   @override
   void dispose() {
+    _taskProvider?.removeListener(_onTaskProviderChanged);
     _searchController.dispose();
     super.dispose();
   }
@@ -54,7 +90,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
         children: [
           // Search & Filter Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Column(
               children: [
                 // Search Input
@@ -73,7 +110,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
                             },
                           )
                         : null,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -85,21 +123,27 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       label: 'Semua (${taskProvider.totalTasksCount})',
                       filter: TaskStatusFilter.all,
                       active: taskProvider.statusFilter == TaskStatusFilter.all,
-                      onTap: () => taskProvider.setStatusFilter(TaskStatusFilter.all),
+                      onTap: () =>
+                          taskProvider.setStatusFilter(TaskStatusFilter.all),
                     ),
                     const SizedBox(width: 8),
                     _buildStatusTab(
-                      label: 'Belum Selesai (${taskProvider.pendingTasksCount})',
+                      label:
+                          'Belum Selesai (${taskProvider.pendingTasksCount})',
                       filter: TaskStatusFilter.pending,
-                      active: taskProvider.statusFilter == TaskStatusFilter.pending,
-                      onTap: () => taskProvider.setStatusFilter(TaskStatusFilter.pending),
+                      active:
+                          taskProvider.statusFilter == TaskStatusFilter.pending,
+                      onTap: () => taskProvider
+                          .setStatusFilter(TaskStatusFilter.pending),
                     ),
                     const SizedBox(width: 8),
                     _buildStatusTab(
                       label: 'Selesai (${taskProvider.completedTasksCount})',
                       filter: TaskStatusFilter.completed,
-                      active: taskProvider.statusFilter == TaskStatusFilter.completed,
-                      onTap: () => taskProvider.setStatusFilter(TaskStatusFilter.completed),
+                      active: taskProvider.statusFilter ==
+                          TaskStatusFilter.completed,
+                      onTap: () => taskProvider
+                          .setStatusFilter(TaskStatusFilter.completed),
                     ),
                   ],
                 ),
@@ -120,7 +164,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       ),
                       const SizedBox(width: 8),
                       ...categories.map((cat) {
-                        final isSelected = taskProvider.selectedCategoryId == cat.id;
+                        final isSelected =
+                            taskProvider.selectedCategoryId == cat.id;
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: CategoryChip(
@@ -129,7 +174,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
                             icon: cat.icon,
                             isSelected: isSelected,
                             onTap: () {
-                              taskProvider.setCategoryFilter(isSelected ? null : cat.id);
+                              taskProvider.setCategoryFilter(
+                                  isSelected ? null : cat.id);
                             },
                           ),
                         );
@@ -144,7 +190,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
           // Task Count & Active Filters Indicator
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -153,11 +200,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
                   ),
                 ),
                 // Priority filter quick dropdown
-                PopupMenuButton<TaskPriority?>(
+                PopupMenuButton<PriorityFilter>(
                   tooltip: 'Filter Prioritas',
                   initialValue: taskProvider.selectedPriority,
                   onSelected: (p) => taskProvider.setPriorityFilter(p),
@@ -166,23 +215,29 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       Icon(
                         Icons.filter_list_rounded,
                         size: 16,
-                        color: taskProvider.selectedPriority != null
-                            ? AppColors.primary
-                            : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                        color:
+                            taskProvider.selectedPriority != PriorityFilter.all
+                                ? AppColors.primary
+                                : (isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        taskProvider.selectedPriority == null
+                        taskProvider.selectedPriority == PriorityFilter.all
                             ? 'Prioritas'
-                            : (taskProvider.selectedPriority == TaskPriority.high
+                            : (taskProvider.selectedPriority ==
+                                    PriorityFilter.high
                                 ? 'Tinggi'
-                                : (taskProvider.selectedPriority == TaskPriority.medium
+                                : (taskProvider.selectedPriority ==
+                                        PriorityFilter.medium
                                     ? 'Sedang'
                                     : 'Rendah')),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: taskProvider.selectedPriority != null
+                          color: taskProvider.selectedPriority !=
+                                  PriorityFilter.all
                               ? AppColors.primary
                               : (isDark
                                   ? AppColors.darkTextSecondary
@@ -193,19 +248,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   ),
                   itemBuilder: (context) => [
                     const PopupMenuItem(
-                      value: null,
+                      value: PriorityFilter.all,
                       child: Text('Semua Prioritas'),
                     ),
                     const PopupMenuItem(
-                      value: TaskPriority.high,
+                      value: PriorityFilter.high,
                       child: Text('Prioritas Tinggi'),
                     ),
                     const PopupMenuItem(
-                      value: TaskPriority.medium,
+                      value: PriorityFilter.medium,
                       child: Text('Prioritas Sedang'),
                     ),
                     const PopupMenuItem(
-                      value: TaskPriority.low,
+                      value: PriorityFilter.low,
                       child: Text('Prioritas Rendah'),
                     ),
                   ],
@@ -219,7 +274,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
             child: tasks.isEmpty
                 ? EmptyStateView(
                     title: 'Tidak Ada Tugas Ditemukan',
-                    message: 'Coba ubah kata kunci pencarian atau reset filter yang dipilih.',
+                    message:
+                        'Coba ubah kata kunci pencarian atau reset filter yang dipilih.',
                     buttonText: 'Reset Semua Filter',
                     onButtonPressed: () {
                       _searchController.clear();
@@ -227,7 +283,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     },
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
                     itemCount: tasks.length,
                     itemBuilder: (context, index) {
                       final task = tasks[index];
@@ -283,7 +340,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 color: active
                     ? Colors.white
-                    : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                    : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -294,4 +353,3 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 }
-
